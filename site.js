@@ -4,6 +4,9 @@ $(document).ready(function() {
 	var worked = 0;
   var minToWork;
   var nextCycle;
+  var startTime;
+  var startHour;
+  var startMin;
   if (localStorage.cycle) {
      cycle = localStorage.cycle;
      minToWork = cycle;
@@ -107,6 +110,9 @@ $(document).ready(function() {
 
   // start the timer
   $(".btn-start").on("click", function(){
+    startTime = new Date();
+    startHour = ("0" + startTime.getHours()).slice(-2);
+    startMin = ("0" + startTime.getMinutes()).slice(-2);
   	$("body").removeClass().addClass("working");
   	$("#timer span").countdown("option", {
       until: +cycle*60,
@@ -154,7 +160,7 @@ $(document).ready(function() {
     } else {
       timeWorked = worked[5];
     }
-  	var text = "<li><h6>" + hour + ":" + min + "</h6><br /><p>" + task + "<small>" + (cycle - timeWorked) + " minutes</p></li>";
+  	var text = "<li data-task='" + "task" + ("0" + count).slice(-2) + "'><h6>" + startHour + ":" + startMin + " - " + hour + ":" + min + "</h6><br /><p>" + task + "<small>" + (cycle - timeWorked) + " minutes</p></li>";
     // if these differ, get them to be the same
     if (nextCycle !== cycle) {
       cycle = localStorage.nextCycle;
@@ -162,11 +168,7 @@ $(document).ready(function() {
     }
 
     // add localStorage keys
-  	if(count < 10) {
-  		localStorage.setItem("task0" + count, text);
-  	} else {
-  		localStorage.setItem("task" + count, text);
-  	}
+  	localStorage.setItem("task" + ("0" + count).slice(-2), text);
 
     // add new task to the top of the list
   	$("#done").prepend(text);
@@ -177,6 +179,17 @@ $(document).ready(function() {
   		$("body").removeClass("log").addClass("list");
   	}
   	return false;
+  });
+  $("#done").on("mouseenter", "li", function() {
+    $(this).prepend("<span class='delete'>x</span>");
+    $(this).find(".delete").on("click", function() {
+      var deleteThis = $(this).parent().attr("data-task");
+      $(this).parent().remove();
+      localStorage.removeItem(deleteThis);
+    });
+  });
+  $("#done").on("mouseleave", "li", function() {
+    $(this).find("span.delete").remove();
   });
 
   //ask user to confirm clearage
