@@ -180,7 +180,7 @@ $(document).ready(function() {
   	}
   	return false;
   });
-  $("#done").on("mouseenter", "li", function() {
+  $("#done").on("mouseenter", "li[data-task]", function() {
     $(this).find("p").prepend("<span class='delete'>x</span>");
     $(this).find(".delete").on("click", function() {
       var deleteThis = $(this).parent().parent().attr("data-task");
