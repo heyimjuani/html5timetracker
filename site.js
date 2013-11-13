@@ -160,7 +160,8 @@ $(document).ready(function() {
     } else {
       timeWorked = worked[5];
     }
-  	var text = "<li data-task='" + "task" + ("0" + count).slice(-2) + "'><h6>" + startHour + ":" + startMin + " - " + hour + ":" + min + "</h6><br /><p>" + task + "<small>" + (cycle - timeWorked) + " minutes</p></li>";
+
+    var text = "<li data-task='" + "task" + ("0" + count).slice(-2) + "'><h6>" + startHour + ":" + startMin + " - " + hour + ":" + min + "</h6><br /><p>" + task + "<small>" + (cycle - timeWorked) + " minutes</p></li>";
     // if these differ, get them to be the same
     if (nextCycle !== cycle) {
       cycle = localStorage.nextCycle;
@@ -168,7 +169,7 @@ $(document).ready(function() {
     }
 
     // add localStorage keys
-  	localStorage.setItem("task" + ("0" + count).slice(-2), text);
+    localStorage.setItem("task" + ("0" + count).slice(-2), text);
 
     // add new task to the top of the list
   	$("#done").prepend(text);
@@ -178,6 +179,11 @@ $(document).ready(function() {
   	} else {
   		$("body").removeClass("log").addClass("list");
   	}
+
+    startTime = new Date();
+    startHour = ("0" + startTime.getHours()).slice(-2);
+    startMin = ("0" + startTime.getMinutes()).slice(-2);
+
   	return false;
   });
   $("#done").on("mouseenter", "li[data-task]", function() {
