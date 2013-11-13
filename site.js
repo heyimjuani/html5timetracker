@@ -181,10 +181,10 @@ $(document).ready(function() {
   	return false;
   });
   $("#done").on("mouseenter", "li", function() {
-    $(this).prepend("<span class='delete'>x</span>");
+    $(this).find("p").prepend("<span class='delete'>x</span>");
     $(this).find(".delete").on("click", function() {
-      var deleteThis = $(this).parent().attr("data-task");
-      $(this).parent().remove();
+      var deleteThis = $(this).parent().parent().attr("data-task");
+      $(this).parent().parent().remove();
       localStorage.removeItem(deleteThis);
     });
   });

@@ -463,15 +463,15 @@ body.list {
 			background-size: 20px 20px;
 			display: block;
 			position: absolute;
-			top: 0;
-			left: 50%;
+			top: -15px;
+			right: -15px;
 			font-size: 12px;
-			padding: 7px 0px;
+			padding: 0px;
 			width: 30px;
+			height: 30px;
 			text-indent: -999px;
 			overflow: hidden;
 			border-radius: 15px;
-			margin: 0 0 0 60px;
 		}
 		body.list p:before {
 			content: "";
