@@ -1,3 +1,6 @@
+/*global $ */
+'use strict';
+
 $(document).ready(function() {
 
 	var myAudio = new Audio("alert.mp3");
@@ -146,22 +149,21 @@ $(document).ready(function() {
   $("#logActivity").submit(function() {
   	var task = $("#what").val();
   	var d = new Date();
-  	var hour = ("0" + d.getHours()).slice(-2);
-  	var min = ("0" + d.getMinutes()).slice(-2);
-    var timeWorked;
+    var hour = ("0" + d.getHours()).slice(-2);
+    var min = ("0" + d.getMinutes()).slice(-2);
+    var msWorked = (d - startTime);
+    var hoursWorked = Math.floor(msWorked / (1000 * 60 * 60));
+    var minsWorked = Math.floor(msWorked / (1000 * 60)) % 60;
 
     count++;
     localStorage.count = count;
 
     myAudio.currentTime = 0;
     myAudio.pause();
-    if (typeof worked[5] !== "number") {
-      timeWorked = 0;
-    } else {
-      timeWorked = worked[5];
-    }
 
-    var text = "<li data-task='" + "task" + ("0" + count).slice(-2) + "'><h6>" + startHour + ":" + startMin + " - " + hour + ":" + min + "</h6><br /><p>" + task + "<small>" + (cycle - timeWorked) + " minutes</p></li>";
+    var text = "<li data-task='" + "task" + ("0" + count).slice(-2) + "'>" + 
+      "<h6>" + startHour + ":" + startMin + " - " + hour + ":" + min + "</h6>" + 
+      "<br /><p>" + task + "<small>" + hoursWorked + ":" + minsWorked + " duration</p></li>";
     // if these differ, get them to be the same
     if (nextCycle !== cycle) {
       cycle = localStorage.nextCycle;
