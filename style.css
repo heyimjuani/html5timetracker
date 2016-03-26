@@ -378,11 +378,9 @@ body.list {
 		box-shadow: 0px 0px 0px 4px #3498db;
 		left: 50%;
 	}
-	body.list #reset {
-		position: absolute;
+	body.list .btn-footer {
 		pointer-events: all;
 		display: block;
-		width: 150px;
 		border: 2px solid rgba(255,255,255,.5);
 		border-radius: 2px;
 		line-height: 36px;
@@ -392,19 +390,30 @@ body.list {
 		font-size: 14px;
 		color: rgba(255,255,255,.5);
 		text-decoration: none;
-		bottom: 20px;
-		margin: 0 0 0 -77px;
-		left: 50%;
 		box-shadow: 0px 0px 0px 4px #3498db;
+		padding:0 15px;
 		-webkit-transition: opacity linear .1s;
 		-moz-transition: opacity linear .1s;
 		-ms-transition: opacity linear .1s;
 		transition: opacity linear .1s;
 	}
-		body.list #reset:hover {
+		body.list .btn-footer:hover {
 			border: 2px solid #fff;
 			color: #fff;
 		}
+
+	body.list #reset {
+		position: absolute;
+		bottom: 20px;
+		left: 50%;
+		transform:translateX(-50%);
+	}
+
+	body.list #copyTSV {
+		position: absolute;
+		bottom: 20px;
+		right:20px;
+	}
 	body.list #done {
 		position: relative;
 		padding: 60px 0 50px;

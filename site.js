@@ -39,6 +39,42 @@ $(document).ready(function() {
       $("body").removeClass("working").addClass(where);
   }
 
+  var formatTask = function(task, format) {
+    var start = new Date(task.start);
+    var end = new Date(task.end);
+
+    var startHour = ("0" + start.getHours()).slice(-2);
+    var startMin = ("0" + start.getMinutes()).slice(-2);
+    var endHour = ("0" + end.getHours()).slice(-2);
+    var endMin = ("0" + end.getMinutes()).slice(-2);
+    var msWorked = (end - start);
+    var hoursWorked = Math.floor(msWorked / (1000 * 60 * 60));
+    var minsWorked = ("0" + Math.floor(msWorked / (1000 * 60)) % 60).slice(-2);
+
+    if (format === 'tsv') {
+      var delim = ': ';
+      var descParts = task.description.split(delim);
+      return [
+        '"' + hoursWorked + ':' + minsWorked + '"',
+        descParts[0], // first part
+        descParts.slice(1).join(delim), // rest of parts
+      ].join('\t');
+    } else {
+      // html is default
+      return "<li data-task='" + task.id + "'>" + 
+        "<h6>" + startHour + ":" + startMin + " - " + endHour + ":" + endMin + "</h6>" + 
+        "<br /><p>" + task.description + "<small>" + hoursWorked + ":" + minsWorked + " duration</p></li>";
+    }
+  };
+
+  var completedTasks = function() {
+    return Object.keys(localStorage).filter(function(key) {
+      return key.indexOf("task") === 0;
+    }).map(function(key) {
+      return JSON.parse(localStorage.getItem(key));
+    });
+  };
+
   $("#timer span").countdown({
       until: 0,
       format: "MS",
@@ -48,10 +84,10 @@ $(document).ready(function() {
 
   // Get stuff from localStorage
   if (typeof (Storage) !== undefined) {
-  	for (var key in localStorage){
-  		if (key == "count" || key.indexOf("task") === -1) { continue; }
-  		$("#done").prepend(localStorage.getItem(key));
-  	}
+    completedTasks().forEach(function(task) {
+      $("#done").prepend(formatTask(task));
+    });
+
     // check if the user is new
     if (localStorage.count) {
       $(".count").text(localStorage.count);
@@ -114,8 +150,6 @@ $(document).ready(function() {
   // start the timer
   $(".btn-start").on("click", function(){
     startTime = new Date();
-    startHour = ("0" + startTime.getHours()).slice(-2);
-    startMin = ("0" + startTime.getMinutes()).slice(-2);
   	$("body").removeClass().addClass("working");
   	$("#timer span").countdown("option", {
       until: +cycle*60,
@@ -147,13 +181,12 @@ $(document).ready(function() {
 
   // do some magic when form is submitted
   $("#logActivity").submit(function() {
-  	var task = $("#what").val();
-  	var d = new Date();
-    var hour = ("0" + d.getHours()).slice(-2);
-    var min = ("0" + d.getMinutes()).slice(-2);
-    var msWorked = (d - startTime);
-    var hoursWorked = Math.floor(msWorked / (1000 * 60 * 60));
-    var minsWorked = ("0" + Math.floor(msWorked / (1000 * 60)) % 60).slice(-2);
+    var task = {
+      id: "task" + ("0" + count).slice(-2),
+      description: $("#what").val(),
+      start: startTime,
+      end: new Date(),
+    };
 
     count++;
     localStorage.count = count;
@@ -161,9 +194,6 @@ $(document).ready(function() {
     myAudio.currentTime = 0;
     myAudio.pause();
 
-    var text = "<li data-task='" + "task" + ("0" + count).slice(-2) + "'>" + 
-      "<h6>" + startHour + ":" + startMin + " - " + hour + ":" + min + "</h6>" + 
-      "<br /><p>" + task + "<small>" + hoursWorked + ":" + minsWorked + " duration</p></li>";
     // if these differ, get them to be the same
     if (nextCycle !== cycle) {
       cycle = localStorage.nextCycle;
@@ -171,10 +201,11 @@ $(document).ready(function() {
     }
 
     // add localStorage keys
-    localStorage.setItem("task" + ("0" + count).slice(-2), text);
+    localStorage.setItem(task.id, JSON.stringify(task));
 
     // add new task to the top of the list
-  	$("#done").prepend(text);
+    var listItem = formatTask(task);
+  	$("#done").prepend(listItem);
   	if ($("#new").is(":checked")) {
   		$("#timer span").countdown("option", {until: +cycle*60});
   		$("body").removeClass("log").addClass("working");
@@ -183,8 +214,6 @@ $(document).ready(function() {
   	}
 
     startTime = new Date();
-    startHour = ("0" + startTime.getHours()).slice(-2);
-    startMin = ("0" + startTime.getMinutes()).slice(-2);
 
   	return false;
   });
@@ -198,6 +227,29 @@ $(document).ready(function() {
   });
   $("#done").on("mouseleave", "li", function() {
     $(this).find("span.delete").remove();
+  });
+
+  $("#copyTSV").on("click", function(e) {
+    var tsv = completedTasks().map(function(t) {
+      return formatTask(t, 'tsv');
+    }).join('\n');
+
+    var textarea = document.createElement('TEXTAREA')
+    document.body.appendChild(textarea);
+    textarea.value = tsv;
+    textarea.select();
+
+    var done = false;
+    try {
+      document.execCommand('copy');
+    } catch (err) {
+      console.error(err);
+      alert("Could not copy"); 
+    }
+
+    document.body.removeChild(textarea);
+
+    e.preventDefault();
   });
 
   //ask user to confirm clearage
