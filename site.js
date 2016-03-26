@@ -153,7 +153,7 @@ $(document).ready(function() {
     var min = ("0" + d.getMinutes()).slice(-2);
     var msWorked = (d - startTime);
     var hoursWorked = Math.floor(msWorked / (1000 * 60 * 60));
-    var minsWorked = Math.floor(msWorked / (1000 * 60)) % 60;
+    var minsWorked = ("0" + Math.floor(msWorked / (1000 * 60)) % 60).slice(-2);
 
     count++;
     localStorage.count = count;
