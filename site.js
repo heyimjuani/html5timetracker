@@ -288,14 +288,12 @@ $(document).ready(function() {
   $(document).keydown(function(e) {
     if(e.which == 13) { // enter
       if ($('body').hasClass('list') || $('body').hasClass('new'))
-        startTimer();
+        return startTimer();
       else if ($('body').hasClass('working'))
-        endTimer();
+        return endTimer();
     } else if (e.which == 27) {
-      cancel();
+      return cancel();
     }
-
-    return false;
   });
 
   //loop alert if browser tab is not active
