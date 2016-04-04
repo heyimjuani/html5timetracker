@@ -35,8 +35,40 @@ $(document).ready(function() {
       $("#what").focus();
   }
 
-  var cancelTimer = function(where) {
-      $("body").removeClass("working").addClass(where);
+  var startTimer = function() {
+    startTime = new Date();
+    $("body").removeClass().addClass("working");
+    $("#timer span").countdown("option", {
+      until: +cycle*60,
+      onExpiry: openAlert
+    });
+    $("#actions span").hide();
+    $("#reset").show();
+    return false;
+  };
+
+  var endTimer = function() {
+    worked = $("#timer span").countdown("getTimes");
+    $("#timer span").countdown("option", {until: 0, onExpiry: logTime});
+    return false;
+  };
+
+  var cancel = function() {
+    var where;
+    if (localStorage.count) {
+      $("#timer span").countdown("option", {until: 0, onExpiry: null});
+      where = 'list';
+    } else {
+      $("#timer span").countdown("option", {until: 0, onExpiry: null});
+      where = 'new';
+    }
+    
+    $("body")
+      .removeClass("working")
+      .removeClass("log")
+      .addClass(where);
+
+    return false;
   }
 
   var formatTask = function(task, format) {
@@ -147,37 +179,9 @@ $(document).ready(function() {
     $("#nextCycle").val(localStorage.nextCycle);
   });
 
-  // start the timer
-  $(".btn-start").on("click", function(){
-    startTime = new Date();
-  	$("body").removeClass().addClass("working");
-  	$("#timer span").countdown("option", {
-      until: +cycle*60,
-      onExpiry: openAlert
-    });
-  	$("#actions span").hide();
-  	$("#reset").show();
-  	return false;
-  });
-
-  // user decides he"s done
-  $("#end").on("click", function() {
-  	worked = $("#timer span").countdown("getTimes");
-  	$("#timer span").countdown("option", {until: 0, onExpiry: logTime});
-  	return false;
-  });
-
-  // check that there are previous tasks already done
-  $("#cancel").on("click", function() {
-  	if (localStorage.count) {
-  		$("#timer span").countdown("option", {until: 0, onExpiry: null});
-  		cancelTimer("list");
-  	} else {
-  		$("#timer span").countdown("option", {until: 0, onExpiry: null});
-  		cancelTimer("new");
-  	}
-  	return false;
-  });
+  $(".btn-start").on("click", startTimer);
+  $("#end").on("click", endTimer);
+  $("#cancel, #void").on("click", cancel);
 
   // do some magic when form is submitted
   $("#logActivity").submit(function() {
@@ -279,6 +283,19 @@ $(document).ready(function() {
   	$(this).parent().hide();
   	$(this).parent().siblings("#reset").show();
   	return false;
+  });
+
+  $(document).keydown(function(e) {
+    if(e.which == 13) { // enter
+      if ($('body').hasClass('list') || $('body').hasClass('new'))
+        startTimer();
+      else if ($('body').hasClass('working'))
+        endTimer();
+    } else if (e.which == 27) {
+      cancel();
+    }
+
+    return false;
   });
 
   //loop alert if browser tab is not active
