@@ -86,10 +86,16 @@ $(document).ready(function() {
     if (format === 'tsv') {
       var delim = ': ';
       var descParts = task.description.split(delim);
+      var dateString = [
+        start.getFullYear(),
+        start.getMonth() + 1,
+        start.getDate(),
+      ].join('-');
       return [
+        dateString,
         '"' + hoursWorked + ':' + minsWorked + '"',
-        descParts[0], // first part
-        descParts.slice(1).join(delim), // rest of parts
+        descParts[0], // first part of description
+        descParts.slice(1).join(delim), // rest of description
       ].join('\t');
     } else {
       // html is default
