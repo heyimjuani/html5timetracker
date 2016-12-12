@@ -22,17 +22,20 @@ $(document).ready(function() {
   var cycle;
   var count = 0;
 
-  var openAlert = function() {
-      myAudio.play();
-      $("body").removeClass("working").addClass("log");
-      $("#new").prop("checked", true);
-      $("#what").focus();
+  var updatePageTitle = function(isRunning) {
+    document.title = isRunning ? 'Time is ticking' : 'Time is stopped';
   }
 
   var logTime = function() {
       $("body").removeClass("working").addClass("log");
       $("#new").prop("checked", true);
       $("#what").focus();
+      updatePageTitle(false);
+  }
+
+  var openAlert = function() {
+      myAudio.play();
+      logTime();
   }
 
   var startTimer = function() {
@@ -44,6 +47,7 @@ $(document).ready(function() {
     });
     $("#actions span").hide();
     $("#reset").show();
+    updatePageTitle(true);
     return false;
   };
 
@@ -67,6 +71,8 @@ $(document).ready(function() {
       .removeClass("working")
       .removeClass("log")
       .addClass(where);
+
+    updatePageTitle(false);
 
     return false;
   }
@@ -319,4 +325,6 @@ $(document).ready(function() {
     myAudio.pause();
     myAudio.currentTime = 0;
   });
+
+  updatePageTitle(false);
 });
