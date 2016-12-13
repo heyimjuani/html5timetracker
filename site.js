@@ -23,7 +23,7 @@ $(document).ready(function() {
   var count = 0;
 
   var updatePageTitle = function(isRunning) {
-    document.title = isRunning ? 'Time is ticking' : 'Time is stopped';
+    document.title = (isRunning ? 'Ticking' : 'Stopped') + ' | Time tracker';
   }
 
   var logTime = function() {
