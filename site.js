@@ -223,10 +223,9 @@ $(document).ready(function() {
     var listItem = formatTask(task);
   	$("#done").prepend(listItem);
   	if ($("#new").is(":checked")) {
-  		$("#timer span").countdown("option", {until: +cycle*60});
-  		$("body").removeClass("log").addClass("working");
+  		startTimer();
   	} else {
-  		$("body").removeClass("log").addClass("list");
+  		cancel();
   	}
 
     startTime = new Date();
