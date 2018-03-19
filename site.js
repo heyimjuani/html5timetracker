@@ -28,7 +28,7 @@ $(document).ready(function() {
 
   var logTime = function() {
       $("body").removeClass("working").addClass("log");
-      $("#new").prop("checked", true);
+      $("#new").prop("checked", false);
       $("#what").focus();
       updatePageTitle(false);
   }
