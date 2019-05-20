@@ -116,6 +116,8 @@ $(document).ready(function() {
       return key.indexOf("task") === 0;
     }).map(function(key) {
       return JSON.parse(localStorage.getItem(key));
+    }).sort(function(a, b) {
+      return Date.parse(a.start) - Date.parse(b.start);
     });
   };
 
