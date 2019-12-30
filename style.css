@@ -357,6 +357,19 @@ body.list {
 	body.list #list {
 		padding: 50px 0;
 	}
+
+	body.list #total {
+    position: fixed;
+    top: 14px;
+    right: 21px;
+    z-index: 11;
+    font-size: 20px;
+    font-weight: bold;
+	}
+	body.list #total h2 {
+		font-size: 14px;
+	}
+
 	body.list .btn-start {
 		background: #e74c3c;
 		display: block;

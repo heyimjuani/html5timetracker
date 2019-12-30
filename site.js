@@ -65,6 +65,16 @@ var populateDoneList = function() {
   }
 
   $(".count").text(tasks.length);
+
+  var totalMS = tasks.reduce(function(totalMS, task) {
+    var start = new Date(task.start);
+    var end = new Date(task.end);
+    var duration = end - start;
+    return totalMS + duration;
+  }, 0);
+
+  var totalHHMM = new Date(totalMS).toISOString().substr(11, 5);
+  $("#total .value").text(totalHHMM);
 }
 
 $(document).ready(function() {
