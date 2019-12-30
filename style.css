@@ -48,8 +48,6 @@ body.settings-open #settings {
 	right: 0;
 	top: 0;
 }
-	body.settings-open.new #next-form,
-	body.settings-open.list #next-form,
 	body.settings-open.log #cycle-form {
 		display: none;
 	}

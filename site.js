@@ -1,6 +1,72 @@
 /*global $ */
 'use strict';
 
+var completedTasks = function() {
+  return Object.keys(localStorage).filter(function(key) {
+    return key.indexOf("task") === 0;
+  }).map(function(key) {
+    return JSON.parse(localStorage.getItem(key));
+  }).sort(function(a, b) {
+    return Date.parse(a.start) - Date.parse(b.start);
+  });
+};
+
+var formatTask = function(task, format) {
+  var start = new Date(task.start);
+  var end = new Date(task.end);
+
+  var startHour = ("0" + start.getHours()).slice(-2);
+  var startMin = ("0" + start.getMinutes()).slice(-2);
+  var endHour = ("0" + end.getHours()).slice(-2);
+  var endMin = ("0" + end.getMinutes()).slice(-2);
+  var msWorked = (end - start);
+  var hoursWorked = Math.floor(msWorked / (1000 * 60 * 60));
+  var minsWorked = ("0" + Math.floor(msWorked / (1000 * 60)) % 60).slice(-2);
+
+  if (format === 'tsv') {
+    var delim = ': ';
+    var descParts = task.description.split(delim);
+    var dateString = [
+      start.getFullYear(),
+      start.getMonth() + 1,
+      start.getDate(),
+    ].join('-');
+    return [
+      dateString,
+      '"' + hoursWorked + ':' + minsWorked + '"',
+      descParts[0], // first part of description
+      descParts.slice(1).join(delim), // rest of description
+    ].join('\t');
+  } else {
+    // html is default
+    return "<li data-task='" + task.id + "'>" + 
+      "<h6>" + startHour + ":" + startMin + " - " + endHour + ":" + endMin + "</h6>" + 
+      "<br /><p>" + task.description + "<small>" + hoursWorked + ":" + minsWorked + " duration</p></li>";
+  }
+};
+
+var populateDoneList = function() {
+  // clear
+  $("#done").html("");
+  $("body").removeClass("new list");
+
+  var tasks = completedTasks();
+
+  // check if the user is new
+  if (tasks.length) {
+    tasks.forEach(function(task) {
+      $("#done").prepend(formatTask(task));
+    });
+
+    $(".count").text(tasks.length);
+    $("body").addClass("list");
+  } else {
+    $("body").addClass("new");
+  }
+
+  $(".count").text(tasks.length);
+}
+
 $(document).ready(function() {
 
 	var myAudio = new Audio("alert.mp3");
@@ -20,7 +86,6 @@ $(document).ready(function() {
   }
 	
   var cycle;
-  var count = 0;
 
   var updatePageTitle = function(isRunning) {
     document.title = (isRunning ? 'Ticking' : 'Stopped') + ' | Time tracker';
@@ -58,68 +123,16 @@ $(document).ready(function() {
   };
 
   var cancel = function() {
-    var where;
-    if (localStorage.count) {
-      $("#timer span").countdown("option", {until: 0, onExpiry: null});
-      where = 'list';
-    } else {
-      $("#timer span").countdown("option", {until: 0, onExpiry: null});
-      where = 'new';
-    }
+    $("#timer span").countdown("option", {until: 0, onExpiry: null});
     
     $("body")
-      .removeClass("working")
-      .removeClass("log")
-      .addClass(where);
+      .removeClass("working log list new")
+      .addClass(localStorage.count ? 'list' : 'new');
 
     updatePageTitle(false);
 
     return false;
   }
-
-  var formatTask = function(task, format) {
-    var start = new Date(task.start);
-    var end = new Date(task.end);
-
-    var startHour = ("0" + start.getHours()).slice(-2);
-    var startMin = ("0" + start.getMinutes()).slice(-2);
-    var endHour = ("0" + end.getHours()).slice(-2);
-    var endMin = ("0" + end.getMinutes()).slice(-2);
-    var msWorked = (end - start);
-    var hoursWorked = Math.floor(msWorked / (1000 * 60 * 60));
-    var minsWorked = ("0" + Math.floor(msWorked / (1000 * 60)) % 60).slice(-2);
-
-    if (format === 'tsv') {
-      var delim = ': ';
-      var descParts = task.description.split(delim);
-      var dateString = [
-        start.getFullYear(),
-        start.getMonth() + 1,
-        start.getDate(),
-      ].join('-');
-      return [
-        dateString,
-        '"' + hoursWorked + ':' + minsWorked + '"',
-        descParts[0], // first part of description
-        descParts.slice(1).join(delim), // rest of description
-      ].join('\t');
-    } else {
-      // html is default
-      return "<li data-task='" + task.id + "'>" + 
-        "<h6>" + startHour + ":" + startMin + " - " + endHour + ":" + endMin + "</h6>" + 
-        "<br /><p>" + task.description + "<small>" + hoursWorked + ":" + minsWorked + " duration</p></li>";
-    }
-  };
-
-  var completedTasks = function() {
-    return Object.keys(localStorage).filter(function(key) {
-      return key.indexOf("task") === 0;
-    }).map(function(key) {
-      return JSON.parse(localStorage.getItem(key));
-    }).sort(function(a, b) {
-      return Date.parse(a.start) - Date.parse(b.start);
-    });
-  };
 
   $("#timer span").countdown({
       until: 0,
@@ -130,18 +143,7 @@ $(document).ready(function() {
 
   // Get stuff from localStorage
   if (typeof (Storage) !== undefined) {
-    completedTasks().forEach(function(task) {
-      $("#done").prepend(formatTask(task));
-    });
-
-    // check if the user is new
-    if (localStorage.count) {
-      $(".count").text(localStorage.count);
-      count = localStorage.count;
-      $("body").addClass("list");
-    } else {
-      $("body").addClass("new");
-    }
+    populateDoneList();
 	}
 
   // set the cycle length
@@ -179,13 +181,6 @@ $(document).ready(function() {
     $("body").removeClass("settings-open");
     return false;
   });
-  // magic when the next cycle length form is submitted
-  $("#next-form").submit(function() {
-    localStorage.setItem("nextCycle", nextCycle);
-    nextCycle = localStorage.nextCycle;
-    $("body").removeClass("settings-open");
-    return false;
-  });
   // close dropdown when clicked anywhere but inside
   $("#settings .overlay").on("click", function() {
     $("body").removeClass("settings-open");
@@ -200,14 +195,13 @@ $(document).ready(function() {
   // do some magic when form is submitted
   $("#logActivity").submit(function() {
     var task = {
-      id: "task" + ("0" + count).slice(-2),
+      id: "task" + ("0" + localStorage.count).slice(-2),
       description: $("#what").val(),
       start: startTime,
       end: new Date(),
     };
 
-    count++;
-    localStorage.count = count;
+    localStorage.count++;
 
     myAudio.currentTime = 0;
     myAudio.pause();
@@ -222,8 +216,7 @@ $(document).ready(function() {
     localStorage.setItem(task.id, JSON.stringify(task));
 
     // add new task to the top of the list
-    var listItem = formatTask(task);
-  	$("#done").prepend(listItem);
+    populateDoneList();
   	if ($("#new").is(":checked")) {
   		startTimer();
   	} else {
@@ -238,8 +231,8 @@ $(document).ready(function() {
     $(this).find("p").prepend("<span class='delete'>x</span>");
     $(this).find(".delete").on("click", function() {
       var deleteThis = $(this).parent().parent().attr("data-task");
-      $(this).parent().parent().remove();
       localStorage.removeItem(deleteThis);
+      populateDoneList();
     });
   });
   $("#done").on("mouseleave", "li", function() {
@@ -282,10 +275,8 @@ $(document).ready(function() {
       if (key === "nextCycle" || key === "cycle") { continue; }
       localStorage.removeItem(key);
     }
-  	count = 0;
-  	$("#done").html("");
-  	$("body").removeClass().addClass("new");
-  	$(".count").text(count);
+    localStorage.count = 0;
+    populateDoneList();
   	$(this).parent().hide();
   	$(this).parent().siblings("#reset").show();
   	return false;
