@@ -21,7 +21,7 @@ var formatTask = function(task, format) {
   var endMin = ("0" + end.getMinutes()).slice(-2);
   var msWorked = (end - start);
   var hoursWorked = Math.floor(msWorked / (1000 * 60 * 60));
-  var minsWorked = ("0" + Math.floor(msWorked / (1000 * 60)) % 60).slice(-2);
+  var minsWorked = ("0" + Math.round(msWorked / (1000 * 60)) % 60).slice(-2);
 
   if (format === 'tsv') {
     var delim = ': ';
