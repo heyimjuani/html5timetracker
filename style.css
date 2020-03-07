@@ -48,8 +48,6 @@ body.settings-open #settings {
 	right: 0;
 	top: 0;
 }
-	body.settings-open.new #next-form,
-	body.settings-open.list #next-form,
 	body.settings-open.log #cycle-form {
 		display: none;
 	}
@@ -359,6 +357,19 @@ body.list {
 	body.list #list {
 		padding: 50px 0;
 	}
+
+	body.list #total {
+    position: fixed;
+    top: 14px;
+    right: 21px;
+    z-index: 11;
+    font-size: 20px;
+    font-weight: bold;
+	}
+	body.list #total h2 {
+		font-size: 14px;
+	}
+
 	body.list .btn-start {
 		background: #e74c3c;
 		display: block;
@@ -378,11 +389,9 @@ body.list {
 		box-shadow: 0px 0px 0px 4px #3498db;
 		left: 50%;
 	}
-	body.list #reset {
-		position: absolute;
+	body.list .btn-footer {
 		pointer-events: all;
 		display: block;
-		width: 150px;
 		border: 2px solid rgba(255,255,255,.5);
 		border-radius: 2px;
 		line-height: 36px;
@@ -392,19 +401,30 @@ body.list {
 		font-size: 14px;
 		color: rgba(255,255,255,.5);
 		text-decoration: none;
-		bottom: 20px;
-		margin: 0 0 0 -77px;
-		left: 50%;
 		box-shadow: 0px 0px 0px 4px #3498db;
+		padding:0 15px;
 		-webkit-transition: opacity linear .1s;
 		-moz-transition: opacity linear .1s;
 		-ms-transition: opacity linear .1s;
 		transition: opacity linear .1s;
 	}
-		body.list #reset:hover {
+		body.list .btn-footer:hover {
 			border: 2px solid #fff;
 			color: #fff;
 		}
+
+	body.list #reset {
+		position: absolute;
+		bottom: 20px;
+		left: 50%;
+		transform:translateX(-50%);
+	}
+
+	body.list #copyTSV {
+		position: absolute;
+		bottom: 20px;
+		right:20px;
+	}
 	body.list #done {
 		position: relative;
 		padding: 60px 0 50px;
@@ -506,14 +526,6 @@ body.list {
 }
 #by strong {
 	color: #fff;
-}
-.twitter-share-button {
-	position: fixed;
-	bottom: 20px;
-	right: 0px;
-	z-index: 100;
-	font-size: 1px;
-	color: rgba(255,255,255,.0);
 }
 
 .notificationLevel {

@@ -3,9 +3,9 @@
 <head>
 	<title>HTML5 Time Tracker - by Juani</title>
 	<link rel="stylesheet" href="style.css" />
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script type="text/javascript" src="jquery-1.10.2.min.js"></script>
 	<script type="text/javascript" src="jquery.countdown.min.js"></script>
-	<script type="text/javascript" src="site.min.js"></script>
+	<script type="text/javascript" src="site.js"></script>
 </head>
 <body>
 <section id="settings">
@@ -37,14 +37,20 @@
 </section>
 
 <section id="list">
+	<div id="total">
+		<h2>Total</h2>
+		<span class="value"></span>
+	</div>
 	<ul id="done">
 		
 	</ul>
 	<div id="actions">
 		<a href="" class="btn-start">Get back to work</a>
 		<br>
-		<a href="" id="reset">Clear activity log</a>
+		<a href="" class="btn-footer" id="reset">Clear activity log</a>
 		<span>Are you sure? <a href="" class="confirm">Yes</a> <a href="" class="cancel">No</a></span>
+
+		<a href="" class="btn-footer" id="copyTSV">Copy as TSV</a>
 	</div>
 	<a href="" class="settings set-cycle">Settings</a>
 </section>
@@ -62,8 +68,6 @@
 </section>
 
 <a href="http://twitter.com/heyimjuani" target="_blank" id="by"><strong>HTML5 Time Tracker</strong> by Juani</a>
-<a href="https://twitter.com/share" class="twitter-share-button" data-url="http://unlayered.com/time" data-text="HTML5 Time Tracker" data-via="heyimjuani" data-related="heyimjuani">Tweet</a>
-<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
 
 </body>
 </html>

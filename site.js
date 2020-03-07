@@ -1,3 +1,82 @@
+/*global $ */
+'use strict';
+
+var completedTasks = function() {
+  return Object.keys(localStorage).filter(function(key) {
+    return key.indexOf("task") === 0;
+  }).map(function(key) {
+    return JSON.parse(localStorage.getItem(key));
+  }).sort(function(a, b) {
+    return Date.parse(a.start) - Date.parse(b.start);
+  });
+};
+
+var formatTask = function(task, format) {
+  var start = new Date(task.start);
+  var end = new Date(task.end);
+
+  var startHour = ("0" + start.getHours()).slice(-2);
+  var startMin = ("0" + start.getMinutes()).slice(-2);
+  var endHour = ("0" + end.getHours()).slice(-2);
+  var endMin = ("0" + end.getMinutes()).slice(-2);
+  var msWorked = (end - start);
+  var hoursWorked = Math.floor(msWorked / (1000 * 60 * 60));
+  var minsWorked = ("0" + Math.round(msWorked / (1000 * 60)) % 60).slice(-2);
+
+  if (format === 'tsv') {
+    var delim = ': ';
+    var descParts = task.description.split(delim);
+    var dateString = [
+      start.getFullYear(),
+      start.getMonth() + 1,
+      start.getDate(),
+    ].join('-');
+    return [
+      dateString,
+      '"' + hoursWorked + ':' + minsWorked + '"',
+      descParts[0], // first part of description
+      descParts.slice(1).join(delim), // rest of description
+    ].join('\t');
+  } else {
+    // html is default
+    return "<li data-task='" + task.id + "'>" + 
+      "<h6>" + startHour + ":" + startMin + " - " + endHour + ":" + endMin + "</h6>" + 
+      "<br /><p>" + task.description + "<small>" + hoursWorked + ":" + minsWorked + " duration</p></li>";
+  }
+};
+
+var populateDoneList = function() {
+  // clear
+  $("#done").html("");
+  $("body").removeClass("new list");
+
+  var tasks = completedTasks();
+
+  // check if the user is new
+  if (tasks.length) {
+    tasks.forEach(function(task) {
+      $("#done").prepend(formatTask(task));
+    });
+
+    $(".count").text(tasks.length);
+    $("body").addClass("list");
+  } else {
+    $("body").addClass("new");
+  }
+
+  $(".count").text(tasks.length);
+
+  var totalMS = tasks.reduce(function(totalMS, task) {
+    var start = new Date(task.start);
+    var end = new Date(task.end);
+    var duration = end - start;
+    return totalMS + duration;
+  }, 0);
+
+  var totalHHMM = new Date(totalMS).toISOString().substr(11, 5);
+  $("#total .value").text(totalHHMM);
+}
+
 $(document).ready(function() {
 
 	var myAudio = new Audio("alert.mp3");
@@ -17,23 +96,52 @@ $(document).ready(function() {
   }
 	
   var cycle;
-  var count = 0;
 
-  var openAlert = function() {
-      myAudio.play();
-      $("body").removeClass("working").addClass("log");
-      $("#new").prop("checked", true);
-      $("#what").focus();
+  var updatePageTitle = function(isRunning) {
+    document.title = (isRunning ? 'Ticking' : 'Stopped') + ' | Time tracker';
   }
 
   var logTime = function() {
       $("body").removeClass("working").addClass("log");
-      $("#new").prop("checked", true);
+      $("#new").prop("checked", false);
       $("#what").focus();
+      updatePageTitle(false);
   }
 
-  var cancelTimer = function(where) {
-      $("body").removeClass("working").addClass(where);
+  var openAlert = function() {
+      myAudio.play();
+      logTime();
+  }
+
+  var startTimer = function() {
+    startTime = new Date();
+    $("body").removeClass().addClass("working");
+    $("#timer span").countdown("option", {
+      until: +cycle*60,
+      onExpiry: openAlert
+    });
+    $("#actions span").hide();
+    $("#reset").show();
+    updatePageTitle(true);
+    return false;
+  };
+
+  var endTimer = function() {
+    worked = $("#timer span").countdown("getTimes");
+    $("#timer span").countdown("option", {until: 0, onExpiry: logTime});
+    return false;
+  };
+
+  var cancel = function() {
+    $("#timer span").countdown("option", {until: 0, onExpiry: null});
+    
+    $("body")
+      .removeClass("working log list new")
+      .addClass(localStorage.count ? 'list' : 'new');
+
+    updatePageTitle(false);
+
+    return false;
   }
 
   $("#timer span").countdown({
@@ -45,18 +153,7 @@ $(document).ready(function() {
 
   // Get stuff from localStorage
   if (typeof (Storage) !== undefined) {
-  	for (var key in localStorage){
-  		if (key == "count" || key.indexOf("task") === -1) { continue; }
-  		$("#done").prepend(localStorage.getItem(key));
-  	}
-    // check if the user is new
-    if (localStorage.count) {
-      $(".count").text(localStorage.count);
-      count = localStorage.count;
-      $("body").addClass("list");
-    } else {
-      $("body").addClass("new");
-    }
+    populateDoneList();
 	}
 
   // set the cycle length
@@ -94,13 +191,6 @@ $(document).ready(function() {
     $("body").removeClass("settings-open");
     return false;
   });
-  // magic when the next cycle length form is submitted
-  $("#next-form").submit(function() {
-    localStorage.setItem("nextCycle", nextCycle);
-    nextCycle = localStorage.nextCycle;
-    $("body").removeClass("settings-open");
-    return false;
-  });
   // close dropdown when clicked anywhere but inside
   $("#settings .overlay").on("click", function() {
     $("body").removeClass("settings-open");
@@ -108,60 +198,24 @@ $(document).ready(function() {
     $("#nextCycle").val(localStorage.nextCycle);
   });
 
-  // start the timer
-  $(".btn-start").on("click", function(){
-    startTime = new Date();
-    startHour = ("0" + startTime.getHours()).slice(-2);
-    startMin = ("0" + startTime.getMinutes()).slice(-2);
-  	$("body").removeClass().addClass("working");
-  	$("#timer span").countdown("option", {
-      until: +cycle*60,
-      onExpiry: openAlert
-    });
-  	$("#actions span").hide();
-  	$("#reset").show();
-  	return false;
-  });
-
-  // user decides he"s done
-  $("#end").on("click", function() {
-  	worked = $("#timer span").countdown("getTimes");
-  	$("#timer span").countdown("option", {until: 0, onExpiry: logTime});
-  	return false;
-  });
-
-  // check that there are previous tasks already done
-  $("#cancel").on("click", function() {
-  	if (localStorage.count) {
-  		$("#timer span").countdown("option", {until: 0, onExpiry: null});
-  		cancelTimer("list");
-  	} else {
-  		$("#timer span").countdown("option", {until: 0, onExpiry: null});
-  		cancelTimer("new");
-  	}
-  	return false;
-  });
+  $(".btn-start").on("click", startTimer);
+  $("#end").on("click", endTimer);
+  $("#cancel, #void").on("click", cancel);
 
   // do some magic when form is submitted
   $("#logActivity").submit(function() {
-  	var task = $("#what").val();
-  	var d = new Date();
-  	var hour = ("0" + d.getHours()).slice(-2);
-  	var min = ("0" + d.getMinutes()).slice(-2);
-    var timeWorked;
+    var task = {
+      id: "task" + ("0" + localStorage.count).slice(-2),
+      description: $("#what").val(),
+      start: startTime,
+      end: new Date(),
+    };
 
-    count++;
-    localStorage.count = count;
+    localStorage.count++;
 
     myAudio.currentTime = 0;
     myAudio.pause();
-    if (typeof worked[5] !== "number") {
-      timeWorked = 0;
-    } else {
-      timeWorked = worked[5];
-    }
 
-    var text = "<li data-task='" + "task" + ("0" + count).slice(-2) + "'><h6>" + startHour + ":" + startMin + " - " + hour + ":" + min + "</h6><br /><p>" + task + "<small>" + (cycle - timeWorked) + " minutes</p></li>";
     // if these differ, get them to be the same
     if (nextCycle !== cycle) {
       cycle = localStorage.nextCycle;
@@ -169,20 +223,17 @@ $(document).ready(function() {
     }
 
     // add localStorage keys
-    localStorage.setItem("task" + ("0" + count).slice(-2), text);
+    localStorage.setItem(task.id, JSON.stringify(task));
 
     // add new task to the top of the list
-  	$("#done").prepend(text);
+    populateDoneList();
   	if ($("#new").is(":checked")) {
-  		$("#timer span").countdown("option", {until: +cycle*60});
-  		$("body").removeClass("log").addClass("working");
+  		startTimer();
   	} else {
-  		$("body").removeClass("log").addClass("list");
+  		cancel();
   	}
 
     startTime = new Date();
-    startHour = ("0" + startTime.getHours()).slice(-2);
-    startMin = ("0" + startTime.getMinutes()).slice(-2);
 
   	return false;
   });
@@ -190,12 +241,35 @@ $(document).ready(function() {
     $(this).find("p").prepend("<span class='delete'>x</span>");
     $(this).find(".delete").on("click", function() {
       var deleteThis = $(this).parent().parent().attr("data-task");
-      $(this).parent().parent().remove();
       localStorage.removeItem(deleteThis);
+      populateDoneList();
     });
   });
   $("#done").on("mouseleave", "li", function() {
     $(this).find("span.delete").remove();
+  });
+
+  $("#copyTSV").on("click", function(e) {
+    var tsv = completedTasks().map(function(t) {
+      return formatTask(t, 'tsv');
+    }).join('\n');
+
+    var textarea = document.createElement('TEXTAREA')
+    document.body.appendChild(textarea);
+    textarea.value = tsv;
+    textarea.select();
+
+    var done = false;
+    try {
+      document.execCommand('copy');
+    } catch (err) {
+      console.error(err);
+      alert("Could not copy"); 
+    }
+
+    document.body.removeChild(textarea);
+
+    e.preventDefault();
   });
 
   //ask user to confirm clearage
@@ -211,10 +285,8 @@ $(document).ready(function() {
       if (key === "nextCycle" || key === "cycle") { continue; }
       localStorage.removeItem(key);
     }
-  	count = 0;
-  	$("#done").html("");
-  	$("body").removeClass().addClass("new");
-  	$(".count").text(count);
+    localStorage.count = 0;
+    populateDoneList();
   	$(this).parent().hide();
   	$(this).parent().siblings("#reset").show();
   	return false;
@@ -225,6 +297,17 @@ $(document).ready(function() {
   	$(this).parent().hide();
   	$(this).parent().siblings("#reset").show();
   	return false;
+  });
+
+  $(document).keydown(function(e) {
+    if(e.which == 13) { // enter
+      if ($('body').hasClass('list') || $('body').hasClass('new'))
+        return startTimer();
+      else if ($('body').hasClass('working'))
+        return endTimer();
+    } else if (e.which == 27) {
+      return cancel();
+    }
   });
 
   //loop alert if browser tab is not active
@@ -244,4 +327,6 @@ $(document).ready(function() {
     myAudio.pause();
     myAudio.currentTime = 0;
   });
+
+  updatePageTitle(false);
 });
